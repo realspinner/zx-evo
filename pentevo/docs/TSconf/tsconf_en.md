@@ -64,11 +64,11 @@ R/W - register or register bit access. R - read, W - write.
 
 ## Programming model
 
-Hardware in TS-Configuration is controlled via dedicated pull of ports with common address #nnAF. They can be written and/or read. Their access modes are specified in descriptions.
+Hardware in TS-Configuration is controlled via dedicated pool of ports with common address #nnAF. They can be written and/or read. Their access modes are specified in descriptions.
 
-Z-Controller, Gluclock and Pentagon-128 ports are also supported. See correspondent sections for their description.
+Z-Controller, Gluclock and Pentagon-128 ports are also supported. See the respective sections for their description.
 
-It is also possible to access #nnAF registers for write by writing memory in pre-configured addresses using **FMAddr** register.
+It is also possible to write-access #nnAF registers by writing memory in pre-configured addresses using **FMAddr** register.
 
 Dedicated memory files, e.g. color RAM and sprite descriptors are only accessed using **FMAddr**.
 
@@ -82,9 +82,9 @@ On Reset some registers are initialized with default values.
 
 <u>***Please notice:***</u>
 
-Unused bits in a register must always be written 0, if not specified otherwise. This is to maintain compatibility with future versions of configuration.
+Unused bits in a register must always be written by 0, if not specified otherwise. This is mandatory to maintain compatibility with future versions of configuration.
 
-When reading from a register unused bits must be ignored.
+When reading from a register, unused bits must be ignored.
 
 ### FMAPS
 
@@ -92,17 +92,17 @@ When reading from a register unused bits must be ignored.
 
 Currently available in this [file](TSconf.xls).
 
-## Процессор и память
+## CPU and memory
 
-### Страничная адресация памяти
+### Paged addressing of the memory
 
-TS конфигурация позволяет адресовать до 4096кБ ОЗУ и 512кБ ПЗУ.
+TS configuration is capable to address up to 4096KB of RAM and 512KB of ROM memory.
 
-Since Z80 CPU has 16-bit address bus it can only access 64kB of memory. CPU addressable span is split into four regions - *windows*. Each *window* is 16kB and has its dedicated 8-bit register to select memory *page* to be mapped into the correspondent CPU addresses. 256 *pages* 16kB each give 4096kB of addressable memory.
+Since Z80 CPU has 16-bit address bus it can only access 64KB of memory. CPU addressable span is split into four regions - *windows*. Each *window* is 16KB wide and has its dedicated 8-bit register to select memory *page* to be mapped into the corresponding CPU addresses range. 256 *pages* of 16KB each yield in 4096KB of addressable memory.
 
-Since ROM is only 512kB three MSBs of correspondent *page* register are not used when ROM is selected for mapping.
+Since ROM is just 512KB, three MSBs of corresponding *page* register are not used when ROM is selected for mapping.
 
-See table below for *windows* addresses and *page* registers.
+See the table below for *windows* addresses and *page* registers.
 
 CPU *window*|CPU address|*Page* register|R/W|Reset value
 ----------|---------------|------------------------|---|----
@@ -115,18 +115,19 @@ Only RAM can be mapped into *windows* 1..3.
 
 RAM or ROM can be mapped into *window* 0. See description below.
 
-#### Маппинг страниц в окне 0
+#### Mapping of memory pages into window 0
 
-В нулевом окне можно отображать страницы RAM/ROM в двух режимах:
+RAM or ROM pages could be mapped into window 0 in one of two modes:
 
-- Режим маппинга страниц
-- Обычный режим
+- Free mapping mode
+- Conventional mode
 
-Режим выбирается с помощью бита *!W0_MAP* регистра **MemConfig**: 0 - режим маппинга страниц, 1 - обычный режим.
+To select mode, the *!W0_MAP* bit of **MemConfig** register is used: 0 - free mapping mode, 1 - conventional mode.
 
-В обычном режиме номер проецируемой страницы берется из регистра **Page0**[7:0] для RAM и **Page0**[4:0] для ROM.
+In conventional mode the number of mapping page is taken from **Page0**[7:0] register for RAM and **Page0**[4:0] for ROM.
 
-Режим маппинга страниц используется для подключения 64кб прошивок ПЗУ, которые могут располагаться как в ROM, так и в RAM компьютера. Выбор страницы этого ПЗУ происходит с помощью сигнала DOS и бита *ROM128* регистра **MemConfig** (или порта #7FFD). Сигнал DOS и бит *ROM128* подставляются в качестве 1 и 0 бита номера страницы соответственно, а все остальные биты берутся из регистра **Page0**, таким образом прошивки ПЗУ должны располагаться в страницах кратных 4.
+Free mapping mode is needed for mapping of 64KB firmware bank, which could be located in ROM or RAM memory.
+Selection of page in such bank is made via DOS signal and *ROM128* bit of **MemConfig** register (or port #7FFD). DOS signal and *ROM128* bit are for 1 and 0 bits of page number, and remaining bits from are taken from **Page0** register. It means the firmware must be located in pages which numbers are the multiply of 4.
 
 Формат прошивок ПЗУ и управляющие сигналы для выбора страниц этого ПЗУ представлены в следующей таблице:
 
